@@ -11,47 +11,47 @@ public Plugin:myinfo =
 
 public OnMapStart()
 {
-	decl String:name[256], bool:isCommand, flags, String:description[1024];
-	new Handle:cvarIter = FindFirstConCommand(name, sizeof(name), isCommand, flags, description, sizeof(description));
-	new Handle:names = CreateArray(ByteCountToCells(sizeof(name)));
-	new Handle:descriptions = CreateTrie();
+	decl String:name[256], bool:isCommand, flags, String:description[1024]
+	new Handle:cvarIter = FindFirstConCommand(name, sizeof(name), isCommand, flags, description, sizeof(description))
+	new Handle:names = CreateArray(ByteCountToCells(sizeof(name)))
+	new Handle:descriptions = CreateTrie()
 	do
 	{
 		// don't print development cvars
 		if (flags & FCVAR_DEVELOPMENTONLY)
-			continue;
+			continue
 
 		// cvars need extra formatting
 		if (!isCommand)
 		{
 			// prepend min/max values
-			new Handle:cvar = FindConVar(name);
-			new Float:valueMin, Float:valueMax;
-			new bool:hasMin, bool:hasMax;
+			new Handle:cvar = FindConVar(name)
+			new Float:valueMin, Float:valueMax
+			new bool:hasMin, bool:hasMax
 			decl String:valueMinStr[32], String:valueMaxStr[32]
 			if ((hasMin = GetConVarBounds(cvar, ConVarBound_Lower, valueMin)))
-				FloatToStringEx(valueMin, valueMinStr, sizeof(valueMinStr));
+				FloatToStringEx(valueMin, valueMinStr, sizeof(valueMinStr))
 			if ((hasMax = GetConVarBounds(cvar, ConVarBound_Upper, valueMax)))
-				FloatToStringEx(valueMax, valueMaxStr, sizeof(valueMaxStr));
+				FloatToStringEx(valueMax, valueMaxStr, sizeof(valueMaxStr))
 
 			if (hasMin && hasMax)
-				Format(description, sizeof(description), "Min: %s, Max: %s\n%s", valueMinStr, valueMaxStr, description);
+				Format(description, sizeof(description), "Min: %s, Max: %s\n%s", valueMinStr, valueMaxStr, description)
 			else if (hasMin)
-				Format(description, sizeof(description), "Min: %s\n%s", valueMinStr, description);
+				Format(description, sizeof(description), "Min: %s\n%s", valueMinStr, description)
 			else if (hasMax)
-				Format(description, sizeof(description), "Max: %s\n%s", valueMaxStr, description);
+				Format(description, sizeof(description), "Max: %s\n%s", valueMaxStr, description)
 
 			// prepend default value
-			decl String:defaultValueString[32];
-			GetConVarDefault(cvar, defaultValueString, sizeof(defaultValueString));
-			Format(description, sizeof(description), "Default: %s\n%s", defaultValueString, description);
+			decl String:defaultValueString[32]
+			GetConVarDefault(cvar, defaultValueString, sizeof(defaultValueString))
+			Format(description, sizeof(description), "Default: %s\n%s", defaultValueString, description)
 		}
 
-		PushArrayString(names, name);
-		SetTrieString(descriptions, name, description);
+		PushArrayString(names, name)
+		SetTrieString(descriptions, name, description)
 	}
-	while (FindNextConCommand(cvarIter, name, sizeof(name), isCommand, flags, description, sizeof(description)));
-	CloseHandle(cvarIter);
+	while (FindNextConCommand(cvarIter, name, sizeof(name), isCommand, flags, description, sizeof(description)))
+	CloseHandle(cvarIter)
 	
 	WriteToHtml(names, descriptions, "cvar.html")
 
@@ -66,45 +66,45 @@ WriteToHtml(Handle:names, Handle:descriptions, String:filename[])
 	new Handle:cvarhtml
 	cvarhtml = OpenFile(filename, "w")
 
-	decl String:version[32];
-	GetVersionString(version, sizeof(version));
+	decl String:version[32]
+	GetVersionString(version, sizeof(version))
 	// remove extra characters from version string
-	ReplaceString(version, sizeof(version), "\n", "");
-	ReplaceString(version, sizeof(version), "\r", "");
+	ReplaceString(version, sizeof(version), "\n", "")
+	ReplaceString(version, sizeof(version), "\r", "")
 
 	// write header
-	WriteFileLine(cvarhtml, "<p>Below is a list of all console commands and cvars in the current release build of Counter-Strike: Global Offensive (v%s). <a href=\"http://twowordbird.com/live-updated-csgo-cvar-list/\" title=\"Live Updated CS:GO Cvar List\">More info here</a>. Filter using the search box below.</p>", version);
-	WriteFileLine(cvarhtml, "<div id=\"cvarlist\">");
-	WriteFileLine(cvarhtml, "<input class=\"search\" placeholder=\"Search\" />");
-	WriteFileLine(cvarhtml, "<ul class=\"list\">");
+	WriteFileLine(cvarhtml, "<p>Below is a list of all console commands and cvars in the current release build of Counter-Strike: Global Offensive (v%s). <a href=\"http://twowordbird.com/live-updated-csgo-cvar-list/\" title=\"Live Updated CS:GO Cvar List\">More info here</a>. Filter using the search box below.</p>", version)
+	WriteFileLine(cvarhtml, "<div id=\"cvarlist\">")
+	WriteFileLine(cvarhtml, "<input class=\"search\" placeholder=\"Search\" />")
+	WriteFileLine(cvarhtml, "<ul class=\"list\">")
 
 	// write list of commands
 	SortADTArrayCustom(names, SortCaseInsensitive)
-	new size = GetArraySize(names);
+	new size = GetArraySize(names)
 	for (new i = 0; i < size; i++)
 	{
-		decl String:name[256];
-		GetArrayString(names, i, name, sizeof(name));
-		WriteFileLine(cvarhtml, "<li>");
-		WriteFileLine(cvarhtml, "  <h3 class=\"name\">%s</h3>", name);
+		decl String:name[256]
+		GetArrayString(names, i, name, sizeof(name))
+		WriteFileLine(cvarhtml, "<li>")
+		WriteFileLine(cvarhtml, "  <h3 class=\"name\">%s</h3>", name)
 
-		decl String:description[1024];
+		decl String:description[1024]
 		if (GetTrieString(descriptions, name, description, sizeof(description)) && description[0])
 		{
-			ReplaceString(description, sizeof(description), "\n", "&#10;");
-			ReplaceString(description, sizeof(description), "<", "&lt;");
-			ReplaceString(description, sizeof(description), ">", "&gt;");
-			WriteFileLine(cvarhtml, "  <pre class=\"desc\">%s</pre>", description);
+			ReplaceString(description, sizeof(description), "\n", "&#10")
+			ReplaceString(description, sizeof(description), "<", "&lt")
+			ReplaceString(description, sizeof(description), ">", "&gt")
+			WriteFileLine(cvarhtml, "  <pre class=\"desc\">%s</pre>", description)
 		}
 
-		WriteFileLine(cvarhtml, "</li>");
+		WriteFileLine(cvarhtml, "</li>")
 	}
 
 	// write footer
-	WriteFileLine(cvarhtml, "</ul>");
-	WriteFileLine(cvarhtml, "</div>");
+	WriteFileLine(cvarhtml, "</ul>")
+	WriteFileLine(cvarhtml, "</div>")
 
-	CloseHandle(cvarhtml);
+	CloseHandle(cvarhtml)
 }
 
 bool:GetVersionString(String:version[], versionLen)
@@ -139,7 +139,7 @@ FloatToStringEx(Float:num, String:str[], maxlength)
 		{
 			new idx
 			if (str[i] == '.')
-				idx = 1;
+				idx = 1
 
 			len = i - idx + 1
 			str[len] = 0
