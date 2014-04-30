@@ -45,9 +45,6 @@ public OnMapStart()
 			decl String:defaultValueString[32];
 			GetConVarDefault(cvar, defaultValueString, sizeof(defaultValueString));
 			Format(description, sizeof(description), "Default: %s\n%s", defaultValueString, description);
-
-			PushArrayString(names, name);
-			SetTrieString(descriptions, name, description);
 		}
 
 		PushArrayString(names, name);
