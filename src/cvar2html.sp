@@ -11,7 +11,7 @@ public Plugin:myinfo =
 
 public OnMapStart()
 {
-	decl String:name[256], bool:isCommand, flags, String:description[1024]
+	decl String:name[256], bool:isCommand, flags, String:description[2048]
 	new Handle:cvarIter = FindFirstConCommand(name, sizeof(name), isCommand, flags, description, sizeof(description))
 	new Handle:names = CreateArray(ByteCountToCells(sizeof(name)))
 	new Handle:descriptions = CreateTrie()
@@ -19,6 +19,10 @@ public OnMapStart()
 	{
 		// don't print development cvars
 		if (flags & FCVAR_DEVELOPMENTONLY)
+			continue
+
+		// ignore stuff related to SourceMod/Metamod
+		if (StrContains(description, "metamod", false) >= 0 || StrContains(description, "sourcemod", false) >= 0)
 			continue
 
 		// cvars need extra formatting
@@ -47,14 +51,22 @@ public OnMapStart()
 			Format(description, sizeof(description), "Default: %s\n%s", defaultValueString, description)
 		}
 
+		TrimString(description)
+		// add info about flags
+		if (flags & FCVAR_CHEAT)
+			Format(description, sizeof(description), "%s\nRequires sv_cheats 1", description)
+		if (flags & FCVAR_GAMEDLL)
+			Format(description, sizeof(description), "%s\nServer only", description)
+		if (flags & FCVAR_CLIENTDLL)
+			Format(description, sizeof(description), "%s\nClient only", description)
+		TrimString(description)
+
 		PushArrayString(names, name)
 		SetTrieString(descriptions, name, description)
 	}
 	while (FindNextConCommand(cvarIter, name, sizeof(name), isCommand, flags, description, sizeof(description)))
 	CloseHandle(cvarIter)
 
-	AddClientCvars(names, descriptions, "clientcvars.log")
-	
 	WriteToHtml(names, descriptions, "cvar.html")
 
 	CloseHandle(names)
@@ -88,7 +100,7 @@ WriteToHtml(Handle:names, Handle:descriptions, String:filename[])
 		WriteFileLine(cvarhtml, "<li>")
 		WriteFileLine(cvarhtml, "  <h3 class=\"name\">%s</h3>", name)
 
-		decl String:description[1024]
+		decl String:description[2048]
 		if (GetTrieString(descriptions, name, description, sizeof(description)) && description[0])
 		{
 			ReplaceString(description, sizeof(description), "\n", "&#10;")
@@ -105,59 +117,6 @@ WriteToHtml(Handle:names, Handle:descriptions, String:filename[])
 	WriteFileLine(cvarhtml, "</div>")
 
 	CloseHandle(cvarhtml)
-}
-
-AddClientCvars(Handle:names, Handle:descriptions, String:filename[])
-{
-	new Handle:clientcvars = OpenFile(filename, "r")
-	if (clientcvars == INVALID_HANDLE)
-	{
-		PrintToServer("Failed to open %s", filename)
-		return
-	}
-	
-	new bool:inCvarList = false
-	decl String:line[1024]
-	decl String:parts[4][1024]
-	while (ReadFileLine(clientcvars, line, sizeof(line)))
-	{
-		TrimString(line)
-		if (!inCvarList)
-		{
-			if (StrEqual(line, "cvar list"))
-			{
-				inCvarList = true
-				// skip next line
-				ReadFileLine(clientcvars, line, sizeof(line))
-			}
-		}
-		else
-		{
-			ExplodeString(line, ":", parts, sizeof(parts), sizeof(parts[]), true)
-			TrimString(parts[0])
-
-			// check for list end
-			if (StrEqual(parts[0], "--------------"))
-				break
-
-			// check if new cvar
-			if (FindStringInArray(names, parts[0]) == -1)
-			{
-				PushArrayString(names, parts[0])
-				TrimString(parts[1])
-				TrimString(parts[3])
-
-				// prepend default value
-				if (!StrEqual(parts[1], "cmd"))
-					Format(parts[3], sizeof(parts[]), "Default: %s\n%s", parts[1], parts[3])
-
-				SetTrieString(descriptions, parts[0], parts[3])
-			}
-		}
-	}
-
-	CloseHandle(clientcvars)
-	return
 }
 
 bool:GetVersionString(String:version[], versionLen)
