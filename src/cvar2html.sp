@@ -91,9 +91,9 @@ WriteToHtml(Handle:names, Handle:descriptions, String:filename[])
 		decl String:description[1024]
 		if (GetTrieString(descriptions, name, description, sizeof(description)) && description[0])
 		{
-			ReplaceString(description, sizeof(description), "\n", "&#10")
-			ReplaceString(description, sizeof(description), "<", "&lt")
-			ReplaceString(description, sizeof(description), ">", "&gt")
+			ReplaceString(description, sizeof(description), "\n", "&#10;")
+			ReplaceString(description, sizeof(description), "<", "&lt;")
+			ReplaceString(description, sizeof(description), ">", "&gt;")
 			WriteFileLine(cvarhtml, "  <pre class=\"desc\">%s</pre>", description)
 		}
 
