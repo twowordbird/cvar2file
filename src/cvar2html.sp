@@ -73,7 +73,7 @@ WriteToHtml(Handle:names, Handle:descriptions, String:filename[])
 	TrimString(version)
 
 	// write header
-	WriteFileLine(cvarhtml, "<p>List of all console commands and cvars in the current release build of Counter-Strike: Global Offensive (v%s). <a href=\"http://twowordbird.com/live-updated-csgo-cvar-list/\" title=\"Live Updated CS:GO Cvar List\">More info here</a>. Filter using the search box below.</p>", version)
+	WriteFileLine(cvarhtml, "<p>Console commands and cvars in the current release build of Counter-Strike: Global Offensive (v%s). <a href=\"http://twowordbird.com/live-updated-csgo-cvar-list/\" title=\"Live Updated CS:GO Cvar List\">More info here</a>. Filter using the search box below.</p>", version)
 	WriteFileLine(cvarhtml, "<div id=\"cvarlist\">")
 	WriteFileLine(cvarhtml, "<input class=\"search\" placeholder=\"Search\" />")
 	WriteFileLine(cvarhtml, "<ul class=\"list\">")
