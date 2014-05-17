@@ -1,8 +1,8 @@
-CSGODIR=/home/chris/Steam/games/csgo_ds
+CSGODIR=/Users/chrisevans/Library/Application\ Support/Steam/SteamApps/common/Counter-Strike\ Global\ Offensive
 PLUGINDIR=bin
 SCRIPTDIR=src
 
-BIN=$(PLUGINDIR)/cvar2html.smx
+BIN=$(PLUGINDIR)/cvar2file.smx
 
 all: $(BIN)
 

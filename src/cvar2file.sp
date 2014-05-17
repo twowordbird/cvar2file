@@ -2,10 +2,10 @@
 
 public Plugin:myinfo =
 {
-	name = "cvar2html",
+	name = "cvar2file",
 	author = "Originally by MCPAN (mcpan@foxmail.com), modified by twowordbird (chris@twowordbird.com)",
-	description = "Write list of commands and cvars in a bloggable format",
-	version = "twb-0.1",
+	description = "Write list of commands and cvars in a list format",
+	version = "twb-0.2",
 	url = "http://twowordbird.com/articles/csgo-console-commands-variable-reference/"
 }
 
@@ -67,7 +67,12 @@ public OnMapStart()
 	while (FindNextConCommand(cvarIter, name, sizeof(name), isCommand, flags, description, sizeof(description)))
 	CloseHandle(cvarIter)
 
-	WriteToHtml(names, descriptions, "cvar.html")
+	AddRadioCommands(names, descriptions)
+
+	decl String:version[32], String:filename[64]
+	GetVersionString(version, sizeof(version))
+	Format(filename, sizeof(filename), "cvars-%s.txt", version)
+	WriteToFile(names, descriptions, filename)
 
 	CloseHandle(names)
 	CloseHandle(descriptions)
@@ -75,48 +80,34 @@ public OnMapStart()
 	ServerCommand("quit")
 }
 
-WriteToHtml(Handle:names, Handle:descriptions, String:filename[])
+AddRadioCommands(Handle:names, Handle:descriptions)
 {
-	new Handle:cvarhtml
-	cvarhtml = OpenFile(filename, "w")
+	// strings bin/client.dylib | less
+	new String:radioCommands[][] = { "coverme", "takepoint", "holdpos", "regroup", "followme", "takingfire", "fallback", "sticktog", "getinpos", "stormfront", "report", "roger", "enemyspot", "needbackup", "sectorclear", "inposition", "reportingin", "getout", "enemydown"}
+	for (new i = 0; i < sizeof(radioCommands); i++)
+	{
+		PushArrayString(names, radioCommands[i])
+		SetTrieString(descriptions, radioCommands[i], "Radio command")
+	}
+}
 
-	decl String:version[32]
-	GetVersionString(version, sizeof(version))
-	TrimString(version)
+WriteToFile(Handle:names, Handle:descriptions, String:filename[])
+{
+	new Handle:cvarfile
+	cvarfile = OpenFile(filename, "w")
 
-	// write header
-	WriteFileLine(cvarhtml, "<p>Console commands and cvars in the current release build of Counter-Strike: Global Offensive (v%s). <a href=\"http://twowordbird.com/live-updated-csgo-cvar-list/\" title=\"Live Updated CS:GO Cvar List\">More info here</a>. Filter using the search box below.</p>", version)
-	WriteFileLine(cvarhtml, "<div id=\"cvarlist\">")
-	WriteFileLine(cvarhtml, "<input class=\"search\" placeholder=\"Search\" />")
-	WriteFileLine(cvarhtml, "<ul class=\"list\">")
-
-	// write list of commands
-	SortADTArrayCustom(names, SortCaseInsensitive)
+	// write command names and descriptions
 	new size = GetArraySize(names)
 	for (new i = 0; i < size; i++)
 	{
-		decl String:name[256]
+		decl String:name[256], String:description[2048]
 		GetArrayString(names, i, name, sizeof(name))
-		WriteFileLine(cvarhtml, "<li>")
-		WriteFileLine(cvarhtml, "  <h3 class=\"name\">%s</h3>", name)
-
-		decl String:description[2048]
 		if (GetTrieString(descriptions, name, description, sizeof(description)) && description[0])
-		{
-			ReplaceString(description, sizeof(description), "\n", "&#10;")
-			ReplaceString(description, sizeof(description), "<", "&lt;")
-			ReplaceString(description, sizeof(description), ">", "&gt;")
-			WriteFileLine(cvarhtml, "  <pre class=\"desc\">%s</pre>", description)
-		}
-
-		WriteFileLine(cvarhtml, "</li>")
+			ReplaceString(description, sizeof(description), "\n", "\\n")
+		WriteFileLine(cvarfile, "%s, %s", name, description)
 	}
 
-	// write footer
-	WriteFileLine(cvarhtml, "</ul>")
-	WriteFileLine(cvarhtml, "</div>")
-
-	CloseHandle(cvarhtml)
+	CloseHandle(cvarfile)
 }
 
 bool:GetVersionString(String:version[], versionLen)
@@ -133,6 +124,7 @@ bool:GetVersionString(String:version[], versionLen)
 		if (StrEqual(parts[0], "PatchVersion"))
 		{
 			strcopy(version, versionLen, parts[1])
+			TrimString(version)
 			break
 		}
 	}
@@ -159,12 +151,4 @@ FloatToStringEx(Float:num, String:str[], maxlength)
 		}
 	}
 	return len
-}
-
-public SortCaseInsensitive(i, j, Handle:array, Handle:h)
-{
-    decl String:stri[32], String:strj[32]
-    GetArrayString(array, i, stri, sizeof(stri))
-    GetArrayString(array, j, strj, sizeof(strj))
-    return strcmp(stri, strj, false)
 }

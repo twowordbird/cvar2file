@@ -1,11 +1,11 @@
 Source Engine CVar Exporter
 ================
 
-This project builds a master list of console commands and variables in CS:GO. It consists of two parts: a SourceMod plugin that exports all server variables and commands, and a script that incorporates extra variables and commands that exist only in the client. Currently, the command to get client varibles returns their default values as integers, even if they are floats, so information that can be obtained from the server is preferred.
+This project builds a master list of console commands and variables in CS:GO. It consists a SourceMod plugin that, on map load, exports all server variables and commands and then exits.
 
 # Exporting cvars
 
-[SourceMod][sourcemod] plugin that exports all cvars in an HTML format on server start, and then quits. Cvars are exported to csgo/cvar.html. Based on [a plugin by MCPAN][tools_cvarlist].
+[SourceMod][sourcemod] plugin that exports all cvars in an HTML format on server start, and then quits. Cvars are exported to csgo/cvars-$VERSION.txt. Based on [a plugin by MCPAN][tools_cvarlist].
 
 ## Compiling
 
